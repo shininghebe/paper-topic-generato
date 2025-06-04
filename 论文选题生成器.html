@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8">
+  <title>大肥羊MBA论文选题自动生成器</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", Helvetica, Arial, sans-serif;
+      margin: 0;
+      padding: 40px;
+      background: #f5f5f7;
+      color: #1d1d1f;
+    }
+    .container {
+      max-width: 640px;
+      margin: auto;
+      padding: 40px;
+      background: #ffffff;
+      border-radius: 24px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.06);
+    }
+    h2 {
+      font-size: 28px;
+      font-weight: 600;
+      margin-bottom: 20px;
+      color: #111;
+      text-align: center;
+    }
+    label {
+      display: block;
+      margin-top: 20px;
+      margin-bottom: 6px;
+      font-weight: 500;
+      color: #333;
+    }
+    input, select {
+      width: 100%;
+      padding: 12px;
+      border-radius: 12px;
+      border: 1px solid #d2d2d7;
+      background: #f9f9fa;
+      font-size: 16px;
+    }
+    input:focus, select:focus {
+      outline: none;
+      border-color: #0071e3;
+      background: #fff;
+    }
+    button {
+      margin-top: 30px;
+      padding: 12px 24px;
+      background: #0071e3;
+      color: white;
+      font-size: 16px;
+      font-weight: 500;
+      border: none;
+      border-radius: 16px;
+      cursor: pointer;
+      transition: background 0.2s ease-in-out;
+    }
+    button:hover {
+      background: #005bb5;
+    }
+    .output {
+      margin-top: 40px;
+      padding: 20px;
+      background: #f0f4ff;
+      border-radius: 16px;
+      border-left: 5px solid #0071e3;
+    }
+    .output p {
+      margin: 12px 0;
+      line-height: 1.6;
+    }
+    .copy-button {
+      margin-left: 12px;
+      padding: 6px 12px;
+      font-size: 14px;
+      cursor: pointer;
+      background: #e5e5ea;
+      border: none;
+      border-radius: 8px;
+    }
+    .copy-button:hover {
+      background: #d0d0d5;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>大肥羊MBA论文选题自动生成器</h2>
+    <label for="industry">行业领域：</label>
+    <input type="text" id="industry" placeholder="如：芯片行业、医药行业">
+    <label for="category">研究大类：</label>
+    <select id="category" onchange="updateSubfields()">
+      <option value="">请选择研究大类</option>
+      <option value="市场营销">市场营销</option>
+      <option value="人力资源管理">人力资源管理</option>
+      <option value="企业战略">企业战略</option>
+      <option value="运营管理">运营管理</option>
+      <option value="客户关系管理">客户关系管理</option>
+      <option value="财务方向">财务方向</option>
+    </select>
+    <label for="direction">研究子方向：</label>
+    <select id="direction" onchange="autoFillModelAndView()">
+      <option value="">请选择研究子方向</option>
+    </select>
+    <label for="company">研究企业名称：</label>
+    <input type="text" id="company" placeholder="如：英特尔、阿里巴巴">
+    <label for="model">推荐模型（可编辑，仅选一个）：</label>
+    <input type="text" id="model" placeholder="系统将自动推荐或您可自行填写">
+    <label for="view">理论视角（可选）：</label>
+    <input type="text" id="view" placeholder="如：消费者行为、平台经济">
+    <button onclick="generateTopics()">生成论文题目</button>
+    <div class="output" id="result"></div>
+  </div>
+  <script>
+    const subfields = {
+      "市场营销": ["社交媒体营销", "数字营销", "品牌营销", "跨境电商营销", "整合营销传播", "精准营销", "IP营销", "内容营销", "体验营销", "影响者营销", "搜索引擎营销"],
+      "人力资源管理": ["员工满意度", "员工忠诚度", "员工薪酬激励", "员工招聘优化", "员工绩效考核", "员工培训", "员工流失", "员工工作倦怠", "员工关系管理"],
+      "企业战略": ["发展战略", "竞争战略", "创新战略", "国际化战略", "商业模式"],
+      "运营管理": ["平台运营", "用户增长", "私域流量运营", "供应链管理", "采购管理", "运营管理", "流程管理", "生产管理", "供应商管理", "风险管理"],
+      "客户关系管理": ["客户关系管理", "客户满意度", "客户忠诚度", "客户服务体验", "服务质量"],
+      "财务方向": ["内部控制", "连续并购"]
+    };
+
+    const modelSuggestions = {
+      "社交媒体营销": ["SICAS模型", "AISAS模型", "SIPS模型", "SIVA理论"],
+      "数字营销": ["AISAS模型", "数据驱动营销", "跨界营销", "STP理论"],
+      "品牌营销": ["AIDA模型", "CBBE模型"],
+      "跨境电商营销": ["4Ps模型", "4Cs模型", "4Cs理论", "4I理论"],
+      "整合营销传播": ["IMC理论"],
+      "精准营销": ["用户画像模型", "聚类分析"],
+      "内容营销": ["4Ps模型", "4Cs模型", "4Cs理论", "4I理论"],
+      "体验营销": ["4Ps模型", "4Cs模型", "4Cs理论", "4I理论"],
+      "员工满意度": ["双因素理论", "EVLN模型", "工作特征模型", "心理契约理论"],
+      "员工忠诚度": ["JD-R模型", "双因素理论", "心灵契约理论", "需求层次理论", "激励理论"],
+      "员工薪酬激励": ["平衡计分卡", "KPI模型", "胜任力模型", "薪酬激励理论", "全面薪酬理论"],
+      "员工招聘优化": ["胜任力模型", "行为事件访谈", "招聘漏斗模型", "人岗匹配模型", "素质冰山模型"],
+      "员工绩效考核": ["OKR模型", "KPI模型", "目标管理法", "BSC", "SMART原则", "平衡记分卡"],
+      "员工培训": ["培训需求分析", "柯氏四级评估模型", "胜任力模型", "大五人格模型"],
+      "员工流失": ["组织承诺模型", "个人-环境匹配理论"],
+      "员工工作倦怠": ["工作倦怠三因素理论", "ERG需求理论", "JD-R模型"],
+      "员工关系管理": ["心理契约理论", "社会交换理论", "员工关系生命周期模型"],
+      "平台运营": ["PDCA理论"],
+      "用户增长": ["长尾理论", "AARRR模型"],
+      "私域流量运营": ["飞轮模型"],
+      "供应链管理": ["精益生产理论", "现场管理理论", "库存管理理论"],
+      "采购管理": ["ABC分类管理理论", "供应链管理理论"],
+      "运营管理": ["精益生产理论", "现场管理理论", "库存管理理论"],
+      "流程管理": ["业务流程再造理论"],
+      "生产管理": ["精益生产"],
+      "供应商管理": ["熵权-TOPSIS法"],
+      "风险管理": ["精益生产"],
+      "客户关系管理": ["CRM模型", "RFM模型", "客户分层模型", "客户生命周期模型"],
+      "客户满意度": ["SERVQUAL模型", "Kano模型"],
+      "客户忠诚度": ["CLV模型"],
+      "客户服务体验": ["服务蓝图法"],
+      "服务质量": ["SERVQUAL模型", "IPA分析法"],
+      "发展战略": ["SWOT-QSPM模型", "IEF和EFE矩阵", "波特五力模型", "PEST模型", "GE矩阵", "波士顿矩阵", "安索夫矩阵"],
+      "竞争战略": ["SWOT-QSPM模型", "IEF和EFE矩阵", "波特五力模型", "PEST模型", "GE矩阵", "波士顿矩阵", "安索夫矩阵"],
+      "创新战略": ["SWOT-QSPM模型", "IEF和EFE矩阵", "波特五力模型", "PEST模型", "GE矩阵", "波士顿矩阵", "安索夫矩阵"],
+      "国际化战略": ["SWOT-QSPM模型", "IEF和EFE矩阵", "波特五力模型", "PEST模型", "GE矩阵", "波士顿矩阵", "安索夫矩阵"],
+      "商业模式": ["商业画布"],
+      "内部控制": ["数字化背景"],
+      "连续并购": ["数字化背景"]
+    };
+
+    const viewSuggestions = {
+      "品牌营销": "平台经济",
+      "内容营销": "消费者行为",
+      "体验营销": "粉丝经济"
+    };
+
+    const templates = [
+      "基于{model}的{industry}{company}{direction}提升策略研究",
+      "基于{view}视角的{industry}企业{direction}提升策略研究"
+    ];
+
+    function updateSubfields() {
+      const category = document.getElementById("category").value;
+      const directionSelect = document.getElementById("direction");
+      directionSelect.innerHTML = "<option value=''>请选择研究子方向</option>";
+      (subfields[category] || []).forEach(dir => {
+        const option = document.createElement("option");
+        option.value = dir;
+        option.text = dir;
+        directionSelect.appendChild(option);
+      });
+      autoFillModelAndView();
+    }
+
+    function autoFillModelAndView() {
+      const direction = document.getElementById("direction").value;
+      const models = modelSuggestions[direction] || [];
+      document.getElementById("model").value = models.join(" / ");
+      document.getElementById("view").value = viewSuggestions[direction] || "";
+    }
+
+    function generateTopics() {
+      const industry = document.getElementById("industry").value.trim();
+      const direction = document.getElementById("direction").value;
+      const company = document.getElementById("company").value.trim();
+      const model = document.getElementById("model").value.trim();
+      const view = document.getElementById("view").value.trim() || "消费者行为";
+
+      if (!industry || !company || !direction || !model) {
+        document.getElementById("result").innerHTML = "<strong>请填写完整信息后再生成。</strong>";
+        return;
+      }
+
+      let html = "<strong>推荐论文题目：</strong>";
+      const firstModel = model.split("/").map(m => m.trim()).filter(m => m)[0];
+      if (!firstModel) return;
+      templates.forEach(t => {
+        const title = t
+          .replace(/{model}/g, firstModel)
+          .replace(/{industry}/g, industry)
+          .replace(/{company}/g, company)
+          .replace(/{direction}/g, direction)
+          .replace(/{view}/g, view);
+        html += `<p>${title}<button class='copy-button' onclick='copyText("${title}")'>复制</button></p>`;
+      });
+      document.getElementById("result").innerHTML = html;
+    }
+
+    function copyText(text) {
+      navigator.clipboard.writeText(text).then(() => alert("已复制到剪贴板！"));
+    }
+  </script>
+</body>
+</html>
